@@ -1,282 +1,385 @@
 <!DOCTYPE html>
 <html lang="pl">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Skip Selectors Playground · AI Security n8n Kurs · M03</title>
-<style>
-  :root {
-    --bg: #1a1e2e;
-    --bg-elev: #242838;
-    --bg-input: #1e2233;
-    --border: #343b52;
-    --cyan: #64ffda;
-    --cyan-dim: rgba(100, 255, 218, 0.22);
-    --cyan-soft: rgba(100, 255, 218, 0.12);
-    --red: #ff5370;
-    --red-soft: rgba(255, 83, 112, 0.15);
-    --yellow: #ffcb6b;
-    --text: #cdd6f4;
-    --muted: #7f849c;
-  }
-  * { box-sizing: border-box; }
-  html, body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: ui-sans-serif, system-ui, -apple-system, "Inter", sans-serif;
-    margin: 0;
-    padding: 0;
-    line-height: 1.5;
-  }
-  body {
-    padding: 28px 24px 80px;
-    max-width: 1280px;
-    margin: 0 auto;
-  }
-  header {
-    border-bottom: 1px solid var(--border);
-    padding-bottom: 16px;
-    margin-bottom: 24px;
-  }
-  header h1 {
-    margin: 0 0 6px;
-    font-size: 22px;
-    color: var(--cyan);
-    font-weight: 600;
-    letter-spacing: 0.3px;
-  }
-  header p {
-    margin: 0;
-    color: var(--muted);
-    font-size: 13px;
-  }
-  .grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
-    margin-bottom: 16px;
-  }
-  @media (max-width: 900px) {
-    .grid { grid-template-columns: 1fr; }
-  }
-  section.card {
-    background: var(--bg-elev);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 14px 16px;
-    margin-bottom: 16px;
-  }
-  .card-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 10px;
-  }
-  .card-header h2 {
-    margin: 0;
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--cyan);
-    letter-spacing: 0.8px;
-    text-transform: uppercase;
-  }
-  .card-header .actions { display: flex; gap: 6px; }
-  button {
-    background: transparent;
-    border: 1px solid var(--border);
-    color: var(--muted);
-    padding: 4px 10px;
-    font-size: 11px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-family: inherit;
-    transition: all 0.15s;
-  }
-  button:hover { color: var(--cyan); border-color: var(--cyan); }
-  textarea {
-    width: 100%;
-    background: var(--bg-input);
-    color: var(--text);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    padding: 10px 12px;
-    font-family: ui-monospace, "SF Mono", "Menlo", monospace;
-    font-size: 12.5px;
-    line-height: 1.55;
-    resize: vertical;
-    outline: none;
-  }
-  textarea:focus { border-color: var(--cyan); }
-  #rules-input { min-height: 220px; }
-  #payload-input { min-height: 300px; }
-  .stats {
-    display: flex;
-    gap: 24px;
-    flex-wrap: wrap;
-    padding: 12px 16px;
-    background: var(--bg-elev);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    margin-bottom: 16px;
-    font-size: 13px;
-  }
-  .stat { display: flex; gap: 8px; align-items: baseline; }
-  .stat-label { color: var(--muted); }
-  .stat-value { color: var(--cyan); font-weight: 600; font-variant-numeric: tabular-nums; }
-  .stat-value.danger { color: var(--red); }
-  .rule-list {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 4px 14px;
-    font-family: ui-monospace, "SF Mono", monospace;
-    font-size: 12px;
-  }
-  .rule-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 3px 6px;
-    border-radius: 3px;
-    gap: 8px;
-  }
-  .rule-item.match { color: var(--cyan); background: var(--cyan-soft); }
-  .rule-item.no-match { color: var(--muted); }
-  .rule-item.invalid { color: var(--red); background: var(--red-soft); }
-  .rule-count { font-weight: 600; font-variant-numeric: tabular-nums; flex-shrink: 0; }
-  .rule-selector { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  pre.source, pre.clean {
-    background: var(--bg-input);
-    color: var(--text);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    padding: 14px 16px;
-    font-family: ui-monospace, "SF Mono", monospace;
-    font-size: 12px;
-    line-height: 1.55;
-    max-height: 480px;
-    overflow: auto;
-    margin: 0;
-    white-space: pre-wrap;
-    word-break: break-word;
-  }
-  .card-source .card-header h2 { color: var(--red); }
-  pre.source .skip {
-    display: block;
-    background: rgba(255, 83, 112, 0.18);
-    border-left: 3px solid var(--red);
-    color: #ffb3bf;
-    padding: 2px 4px 2px 8px;
-    margin: 1px 0;
-  }
-  pre.source .skip .skip {
-    background: rgba(255, 83, 112, 0.32);
-    border-left-color: #ff8ea2;
-    color: #ffd1d8;
-  }
-  .clean-note {
-    color: var(--muted);
-    font-size: 11px;
-    margin-top: 6px;
-    font-style: italic;
-  }
-  .info-row {
-    color: var(--muted);
-    font-size: 12px;
-    margin-top: 6px;
-  }
-  .invalid-badge {
-    display: inline-block;
-    background: var(--red-soft);
-    color: var(--red);
-    padding: 1px 6px;
-    border-radius: 3px;
-    font-size: 10px;
-    margin-left: 6px;
-  }
-  .hint {
-    color: var(--muted);
-    font-size: 11px;
-    margin-top: 6px;
-  }
-  code { font-family: ui-monospace, "SF Mono", monospace; color: var(--cyan); font-size: 11.5px; }
-  footer {
-    margin-top: 40px;
-    padding-top: 16px;
-    border-top: 1px solid var(--border);
-    color: var(--muted);
-    font-size: 11px;
-    text-align: center;
-  }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Skip Selectors Playground · AI Security n8n Kurs · M03</title>
+  <style>
+    :root {
+      --bg: #1a1e2e;
+      --bg-elev: #242838;
+      --bg-input: #1e2233;
+      --border: #343b52;
+      --cyan: #64ffda;
+      --cyan-dim: rgba(100, 255, 218, 0.22);
+      --cyan-soft: rgba(100, 255, 218, 0.12);
+      --red: #ff5370;
+      --red-soft: rgba(255, 83, 112, 0.15);
+      --yellow: #ffcb6b;
+      --text: #cdd6f4;
+      --muted: #7f849c;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: ui-sans-serif, system-ui, -apple-system, "Inter", sans-serif;
+      margin: 0;
+      padding: 0;
+      line-height: 1.5;
+    }
+
+    body {
+      padding: 28px 24px 80px;
+      max-width: 1280px;
+      margin: 0 auto;
+    }
+
+    header {
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 16px;
+      margin-bottom: 24px;
+    }
+
+    header h1 {
+      margin: 0 0 6px;
+      font-size: 22px;
+      color: var(--cyan);
+      font-weight: 600;
+      letter-spacing: 0.3px;
+    }
+
+    header p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    @media (max-width: 900px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    section.card {
+      background: var(--bg-elev);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 16px;
+      margin-bottom: 16px;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    .card-header h2 {
+      margin: 0;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--cyan);
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+    }
+
+    .card-header .actions {
+      display: flex;
+      gap: 6px;
+    }
+
+    button {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 4px 10px;
+      font-size: 11px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.15s;
+    }
+
+    button:hover {
+      color: var(--cyan);
+      border-color: var(--cyan);
+    }
+
+    textarea {
+      width: 100%;
+      background: var(--bg-input);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 10px 12px;
+      font-family: ui-monospace, "SF Mono", "Menlo", monospace;
+      font-size: 12.5px;
+      line-height: 1.55;
+      resize: vertical;
+      outline: none;
+    }
+
+    textarea:focus {
+      border-color: var(--cyan);
+    }
+
+    #rules-input {
+      min-height: 220px;
+    }
+
+    #payload-input {
+      min-height: 300px;
+    }
+
+    .stats {
+      display: flex;
+      gap: 24px;
+      flex-wrap: wrap;
+      padding: 12px 16px;
+      background: var(--bg-elev);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin-bottom: 16px;
+      font-size: 13px;
+    }
+
+    .stat {
+      display: flex;
+      gap: 8px;
+      align-items: baseline;
+    }
+
+    .stat-label {
+      color: var(--muted);
+    }
+
+    .stat-value {
+      color: var(--cyan);
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .stat-value.danger {
+      color: var(--red);
+    }
+
+    .rule-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 4px 14px;
+      font-family: ui-monospace, "SF Mono", monospace;
+      font-size: 12px;
+    }
+
+    .rule-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 3px 6px;
+      border-radius: 3px;
+      gap: 8px;
+    }
+
+    .rule-item.match {
+      color: var(--cyan);
+      background: var(--cyan-soft);
+    }
+
+    .rule-item.no-match {
+      color: var(--muted);
+    }
+
+    .rule-item.invalid {
+      color: var(--red);
+      background: var(--red-soft);
+    }
+
+    .rule-count {
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+      flex-shrink: 0;
+    }
+
+    .rule-selector {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    pre.source,
+    pre.clean {
+      background: var(--bg-input);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 14px 16px;
+      font-family: ui-monospace, "SF Mono", monospace;
+      font-size: 12px;
+      line-height: 1.55;
+      max-height: 480px;
+      overflow: auto;
+      margin: 0;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .card-source .card-header h2 {
+      color: var(--red);
+    }
+
+    pre.source .skip {
+      display: block;
+      background: rgba(255, 83, 112, 0.18);
+      border-left: 3px solid var(--red);
+      color: #ffb3bf;
+      padding: 2px 4px 2px 8px;
+      margin: 1px 0;
+    }
+
+    pre.source .skip .skip {
+      background: rgba(255, 83, 112, 0.32);
+      border-left-color: #ff8ea2;
+      color: #ffd1d8;
+    }
+
+    .clean-note {
+      color: var(--muted);
+      font-size: 11px;
+      margin-top: 6px;
+      font-style: italic;
+    }
+
+    .info-row {
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 6px;
+    }
+
+    .invalid-badge {
+      display: inline-block;
+      background: var(--red-soft);
+      color: var(--red);
+      padding: 1px 6px;
+      border-radius: 3px;
+      font-size: 10px;
+      margin-left: 6px;
+    }
+
+    .hint {
+      color: var(--muted);
+      font-size: 11px;
+      margin-top: 6px;
+    }
+
+    code {
+      font-family: ui-monospace, "SF Mono", monospace;
+      color: var(--cyan);
+      font-size: 11.5px;
+    }
+
+    footer {
+      margin-top: 40px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 11px;
+      text-align: center;
+    }
+  </style>
 </head>
+
 <body>
 
-<header>
-  <h1>Skip Selectors Playground</h1>
-  <p>Wklej listę reguł <code>skipSelectors</code> (jak w n8n HTML Extract) + dowolny HTML jako payload. Zobacz dynamicznie co wylatuje (zielone) i co zostaje w <code>cleanText</code>. Moduł 3 — AI Security n8n Kurs.</p>
-</header>
+  <header>
+    <h1>Skip Selectors Playground</h1>
+    <p>Wklej listę reguł <code>skipSelectors</code> (jak w n8n HTML Extract) + dowolny HTML jako payload. Zobacz
+      dynamicznie co wylatuje (zielone) i co zostaje w <code>cleanText</code>. Moduł 3 — AI Security n8n Kurs.</p>
+  </header>
 
-<div class="grid">
+  <div class="grid">
+    <section class="card">
+      <div class="card-header">
+        <h2>Rules — skip selectors (jedna per linia)</h2>
+        <div class="actions">
+          <button id="btn-rules-load">Load defaults</button>
+          <button id="btn-rules-clear">Clear</button>
+        </div>
+      </div>
+      <textarea id="rules-input" spellcheck="false" autocomplete="off"></textarea>
+      <div class="hint">Komentarze: linie zaczynające się od <code>#</code> lub <code>//</code> są ignorowane.
+        Niepoprawny selektor pojawi się na czerwono.</div>
+    </section>
+
+    <section class="card">
+      <div class="card-header">
+        <h2>Payload — HTML strony</h2>
+        <div class="actions">
+          <button id="btn-payload-load">Load demo</button>
+          <button id="btn-payload-clear">Clear</button>
+        </div>
+      </div>
+      <textarea id="payload-input" spellcheck="false" autocomplete="off"></textarea>
+      <div class="hint">Default: <code>strona_stawki_budowlane/index.html</code> — zatruty artykuł z M3.</div>
+    </section>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><span class="stat-label">Reguły łapiące:</span><span class="stat-value" id="stat-rules">0 /
+        0</span></div>
+    <div class="stat"><span class="stat-label">Elementy wycięte:</span><span class="stat-value"
+        id="stat-elements">0</span></div>
+    <div class="stat"><span class="stat-label">Δ tekst:</span><span class="stat-value" id="stat-delta">-0 znaków</span>
+    </div>
+    <div class="stat"><span class="stat-label">Niepoprawne reguły:</span><span class="stat-value"
+        id="stat-invalid">0</span></div>
+  </div>
+
   <section class="card">
     <div class="card-header">
-      <h2>Rules — skip selectors (jedna per linia)</h2>
-      <div class="actions">
-        <button id="btn-rules-load">Load defaults</button>
-        <button id="btn-rules-clear">Clear</button>
-      </div>
+      <h2>Per-rule match count</h2>
     </div>
-    <textarea id="rules-input" spellcheck="false" autocomplete="off"></textarea>
-    <div class="hint">Komentarze: linie zaczynające się od <code>#</code> lub <code>//</code> są ignorowane. Niepoprawny selektor pojawi się na czerwono.</div>
+    <div class="rule-list" id="rule-list"></div>
+  </section>
+
+  <section class="card card-source">
+    <div class="card-header">
+      <h2>Highlighted source — co wylatuje</h2>
+    </div>
+    <pre class="source" id="highlighted-source"></pre>
+    <div class="clean-note">Czerwone tło = element zostanie usunięty przez którąś z reguł (logika OR — wystarczy jedna).
+      Zagnieżdżone matche mają ciemniejsze tło.</div>
   </section>
 
   <section class="card">
     <div class="card-header">
-      <h2>Payload — HTML strony</h2>
-      <div class="actions">
-        <button id="btn-payload-load">Load demo</button>
-        <button id="btn-payload-clear">Clear</button>
-      </div>
+      <h2>Clean text — to co agent dostaje z HTML Extract</h2>
     </div>
-    <textarea id="payload-input" spellcheck="false" autocomplete="off"></textarea>
-    <div class="hint">Default: <code>strona_stawki_budowlane/index.html</code> — zatruty artykuł z M3.</div>
+    <pre class="clean" id="clean-output"></pre>
+    <div class="clean-note">Tekst całego dokumentu (head+body) po wycięciu wszystkich matched elementów, z
+      <code>Clean Up Text: ON</code>.</div>
   </section>
-</div>
 
-<div class="stats">
-  <div class="stat"><span class="stat-label">Reguły łapiące:</span><span class="stat-value" id="stat-rules">0 / 0</span></div>
-  <div class="stat"><span class="stat-label">Elementy wycięte:</span><span class="stat-value" id="stat-elements">0</span></div>
-  <div class="stat"><span class="stat-label">Δ tekst:</span><span class="stat-value" id="stat-delta">-0 znaków</span></div>
-  <div class="stat"><span class="stat-label">Niepoprawne reguły:</span><span class="stat-value" id="stat-invalid">0</span></div>
-</div>
+  <footer>
+    AI Security n8n Kurs · Moduł 3 · Obrona narzędzi · <a href="../stawki-budowlane-2026/"
+      style="color: var(--muted);">→ strona_stawki_budowlane</a>
+  </footer>
 
-<section class="card">
-  <div class="card-header">
-    <h2>Per-rule match count</h2>
-  </div>
-  <div class="rule-list" id="rule-list"></div>
-</section>
-
-<section class="card card-source">
-  <div class="card-header">
-    <h2>Highlighted source — co wylatuje</h2>
-  </div>
-  <pre class="source" id="highlighted-source"></pre>
-  <div class="clean-note">Czerwone tło = element zostanie usunięty przez którąś z reguł (logika OR — wystarczy jedna). Zagnieżdżone matche mają ciemniejsze tło.</div>
-</section>
-
-<section class="card">
-  <div class="card-header">
-    <h2>Clean text — to co agent dostaje z HTML Extract</h2>
-  </div>
-  <pre class="clean" id="clean-output"></pre>
-  <div class="clean-note">Tekst całego dokumentu (head+body) po wycięciu wszystkich matched elementów, z <code>Clean Up Text: ON</code>.</div>
-</section>
-
-<footer>
-  AI Security n8n Kurs · Moduł 3 · Obrona narzędzi · <a href="../strona_stawki_budowlane/" style="color: var(--muted);">→ strona_stawki_budowlane</a>
-</footer>
-
-<script type="text/plain" id="default-rules">[aria-hidden]
+  <script type="text/plain" id="default-rules">[aria-hidden]
 [style*="display:none"]
 [style*="display: none"]
 [style*="visibility:hidden"]
@@ -304,7 +407,7 @@ noscript
 .sr-only
 .visually-hidden</script>
 
-<script type="text/plain" id="default-payload"><!DOCTYPE html>
+  <script type="text/plain" id="default-payload"><!DOCTYPE html>
 <html lang="pl">
 <head>
   <meta charset="UTF-8">
@@ -384,209 +487,210 @@ noscript
 </body>
 </html></script>
 
-<script>
-(function () {
-  'use strict';
+  <script>
+    (function () {
+      'use strict';
 
-  const VOID_TAGS = new Set(['area','base','br','col','embed','hr','img','input','link','meta','param','source','track','wbr']);
+      const VOID_TAGS = new Set(['area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'param', 'source', 'track', 'wbr']);
 
-  const $ = (sel) => document.querySelector(sel);
-  const rulesInput = $('#rules-input');
-  const payloadInput = $('#payload-input');
-  const ruleList = $('#rule-list');
-  const sourcePre = $('#highlighted-source');
-  const cleanPre = $('#clean-output');
-  const statRules = $('#stat-rules');
-  const statElements = $('#stat-elements');
-  const statDelta = $('#stat-delta');
-  const statInvalid = $('#stat-invalid');
+      const $ = (sel) => document.querySelector(sel);
+      const rulesInput = $('#rules-input');
+      const payloadInput = $('#payload-input');
+      const ruleList = $('#rule-list');
+      const sourcePre = $('#highlighted-source');
+      const cleanPre = $('#clean-output');
+      const statRules = $('#stat-rules');
+      const statElements = $('#stat-elements');
+      const statDelta = $('#stat-delta');
+      const statInvalid = $('#stat-invalid');
 
-  const defaultRules = document.getElementById('default-rules').textContent.trim();
-  const defaultPayload = document.getElementById('default-payload').textContent.trim();
+      const defaultRules = document.getElementById('default-rules').textContent.trim();
+      const defaultPayload = document.getElementById('default-payload').textContent.trim();
 
-  function escapeHtml(s) {
-    return String(s)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;');
-  }
-
-  function parseRules(text) {
-    const lines = text.split('\n');
-    const rules = [];
-    for (let i = 0; i < lines.length; i++) {
-      let line = lines[i].trim();
-      if (!line) continue;
-      if (line.startsWith('#') || line.startsWith('//')) continue;
-      // Validate by trying the selector on a dummy element
-      let valid = true;
-      try {
-        document.createElement('div').querySelector(line);
-      } catch (e) {
-        valid = false;
+      function escapeHtml(s) {
+        return String(s)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;');
       }
-      rules.push({ selector: line, valid, index: rules.length });
-    }
-    return rules;
-  }
 
-  function serialize(node, matched) {
-    const type = node.nodeType;
-    if (type === 3) {
-      return escapeHtml(node.nodeValue);
-    }
-    if (type === 8) {
-      return '&lt;!--' + escapeHtml(node.nodeValue) + '--&gt;';
-    }
-    if (type === 9 || type === 11) {
-      let out = '';
-      for (const c of node.childNodes) out += serialize(c, matched);
-      return out;
-    }
-    if (type !== 1) return '';
-
-    const tag = node.tagName.toLowerCase();
-    let attrs = '';
-    for (const a of node.attributes) {
-      attrs += ' ' + escapeHtml(a.name) + '="' + escapeHtml(a.value) + '"';
-    }
-    const isVoid = VOID_TAGS.has(tag);
-    let inner = '';
-    if (!isVoid) {
-      for (const c of node.childNodes) inner += serialize(c, matched);
-    }
-    const open = '&lt;' + tag + attrs + '&gt;';
-    const close = isVoid ? '' : '&lt;/' + tag + '&gt;';
-    const html = open + inner + close;
-    if (matched.has(node)) {
-      return '<span class="skip">' + html + '</span>';
-    }
-    return html;
-  }
-
-  function collapseWhitespace(s) {
-    return s.replace(/[ \t]+/g, ' ').replace(/\s*\n\s*/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
-  }
-
-  function recompute() {
-    const rulesText = rulesInput.value;
-    const payloadText = payloadInput.value;
-
-    const rules = parseRules(rulesText);
-    const invalidCount = rules.filter(r => !r.valid).length;
-
-    // Parse payload
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(payloadText || '<body></body>', 'text/html');
-    const body = doc.body;
-    const root = doc.documentElement || body;
-
-    // Original text (cały dokument, bez skipów — head+body razem, żeby delta była symetryczna z matchowaniem)
-    const originalText = collapseWhitespace(root ? root.textContent : '');
-
-    // Run each rule against the whole document — strip to strip, cokolwiek łapie reguła leci z cleanText.
-    const matched = new Set();
-    const ruleCounts = [];
-    for (const r of rules) {
-      if (!r.valid) {
-        ruleCounts.push({ ...r, count: 0 });
-        continue;
+      function parseRules(text) {
+        const lines = text.split('\n');
+        const rules = [];
+        for (let i = 0; i < lines.length; i++) {
+          let line = lines[i].trim();
+          if (!line) continue;
+          if (line.startsWith('#') || line.startsWith('//')) continue;
+          // Validate by trying the selector on a dummy element
+          let valid = true;
+          try {
+            document.createElement('div').querySelector(line);
+          } catch (e) {
+            valid = false;
+          }
+          rules.push({ selector: line, valid, index: rules.length });
+        }
+        return rules;
       }
-      let elements = [];
-      try {
-        elements = Array.from(root ? root.querySelectorAll(r.selector) : []);
-      } catch (e) {
-        ruleCounts.push({ ...r, count: 0, valid: false });
-        continue;
+
+      function serialize(node, matched) {
+        const type = node.nodeType;
+        if (type === 3) {
+          return escapeHtml(node.nodeValue);
+        }
+        if (type === 8) {
+          return '&lt;!--' + escapeHtml(node.nodeValue) + '--&gt;';
+        }
+        if (type === 9 || type === 11) {
+          let out = '';
+          for (const c of node.childNodes) out += serialize(c, matched);
+          return out;
+        }
+        if (type !== 1) return '';
+
+        const tag = node.tagName.toLowerCase();
+        let attrs = '';
+        for (const a of node.attributes) {
+          attrs += ' ' + escapeHtml(a.name) + '="' + escapeHtml(a.value) + '"';
+        }
+        const isVoid = VOID_TAGS.has(tag);
+        let inner = '';
+        if (!isVoid) {
+          for (const c of node.childNodes) inner += serialize(c, matched);
+        }
+        const open = '&lt;' + tag + attrs + '&gt;';
+        const close = isVoid ? '' : '&lt;/' + tag + '&gt;';
+        const html = open + inner + close;
+        if (matched.has(node)) {
+          return '<span class="skip">' + html + '</span>';
+        }
+        return html;
       }
-      for (const el of elements) matched.add(el);
-      ruleCounts.push({ ...r, count: elements.length });
-    }
 
-    // Render highlighted source (use documentElement to show the full page)
-    const sourceHtml = serialize(root, matched);
-    sourcePre.innerHTML = sourceHtml;
-
-    // Render clean text: clone doc, remove matched, pobierz textContent z całego documentElement
-    matched.forEach((el) => el.setAttribute('data-sskip', '1'));
-    const docCloneMarked = doc.cloneNode(true);
-    matched.forEach((el) => el.removeAttribute('data-sskip'));
-    docCloneMarked.querySelectorAll('[data-sskip]').forEach((el) => el.remove());
-    const cleanRoot = docCloneMarked.documentElement || docCloneMarked.body;
-    const cleanedText = collapseWhitespace(cleanRoot ? cleanRoot.textContent : '');
-    cleanPre.textContent = cleanedText || '(pusty wynik — wszystko wycięte lub payload pusty)';
-
-    // Stats
-    const validRules = rules.filter(r => r.valid).length;
-    const matchingRules = ruleCounts.filter(r => r.valid && r.count > 0).length;
-    statRules.textContent = matchingRules + ' / ' + validRules;
-    statElements.textContent = matched.size;
-    const delta = cleanedText.length - originalText.length;
-    statDelta.textContent = (delta > 0 ? '+' : '') + delta + ' znaków';
-    statDelta.classList.toggle('danger', matched.size === 0 && rules.length > 0);
-    statInvalid.textContent = invalidCount;
-    statInvalid.classList.toggle('danger', invalidCount > 0);
-
-    // Render per-rule list
-    ruleList.innerHTML = '';
-    if (ruleCounts.length === 0) {
-      ruleList.innerHTML = '<div class="rule-item no-match">(brak reguł — dodaj przynajmniej jedną do Rules)</div>';
-    } else {
-      for (const rc of ruleCounts) {
-        const div = document.createElement('div');
-        let cls = 'rule-item';
-        let prefix = '·';
-        if (!rc.valid) { cls += ' invalid'; prefix = '!'; }
-        else if (rc.count > 0) { cls += ' match'; prefix = '✓'; }
-        else { cls += ' no-match'; prefix = '·'; }
-        div.className = cls;
-        const sel = document.createElement('span');
-        sel.className = 'rule-selector';
-        sel.textContent = prefix + ' ' + rc.selector;
-        const cnt = document.createElement('span');
-        cnt.className = 'rule-count';
-        if (!rc.valid) cnt.textContent = 'invalid';
-        else cnt.textContent = rc.count + (rc.count === 1 ? ' match' : ' matches');
-        div.appendChild(sel);
-        div.appendChild(cnt);
-        ruleList.appendChild(div);
+      function collapseWhitespace(s) {
+        return s.replace(/[ \t]+/g, ' ').replace(/\s*\n\s*/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
       }
-    }
-  }
 
-  let debounceTimer = null;
-  function scheduleRecompute() {
-    clearTimeout(debounceTimer);
-    debounceTimer = setTimeout(recompute, 200);
-  }
+      function recompute() {
+        const rulesText = rulesInput.value;
+        const payloadText = payloadInput.value;
 
-  rulesInput.addEventListener('input', scheduleRecompute);
-  payloadInput.addEventListener('input', scheduleRecompute);
+        const rules = parseRules(rulesText);
+        const invalidCount = rules.filter(r => !r.valid).length;
 
-  document.getElementById('btn-rules-load').addEventListener('click', () => {
-    rulesInput.value = defaultRules;
-    recompute();
-  });
-  document.getElementById('btn-rules-clear').addEventListener('click', () => {
-    rulesInput.value = '';
-    recompute();
-  });
-  document.getElementById('btn-payload-load').addEventListener('click', () => {
-    payloadInput.value = defaultPayload;
-    recompute();
-  });
-  document.getElementById('btn-payload-clear').addEventListener('click', () => {
-    payloadInput.value = '';
-    recompute();
-  });
+        // Parse payload
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(payloadText || '<body></body>', 'text/html');
+        const body = doc.body;
+        const root = doc.documentElement || body;
 
-  // Init
-  rulesInput.value = defaultRules;
-  payloadInput.value = defaultPayload;
-  recompute();
-})();
-</script>
+        // Original text (cały dokument, bez skipów — head+body razem, żeby delta była symetryczna z matchowaniem)
+        const originalText = collapseWhitespace(root ? root.textContent : '');
+
+        // Run each rule against the whole document — strip to strip, cokolwiek łapie reguła leci z cleanText.
+        const matched = new Set();
+        const ruleCounts = [];
+        for (const r of rules) {
+          if (!r.valid) {
+            ruleCounts.push({ ...r, count: 0 });
+            continue;
+          }
+          let elements = [];
+          try {
+            elements = Array.from(root ? root.querySelectorAll(r.selector) : []);
+          } catch (e) {
+            ruleCounts.push({ ...r, count: 0, valid: false });
+            continue;
+          }
+          for (const el of elements) matched.add(el);
+          ruleCounts.push({ ...r, count: elements.length });
+        }
+
+        // Render highlighted source (use documentElement to show the full page)
+        const sourceHtml = serialize(root, matched);
+        sourcePre.innerHTML = sourceHtml;
+
+        // Render clean text: clone doc, remove matched, pobierz textContent z całego documentElement
+        matched.forEach((el) => el.setAttribute('data-sskip', '1'));
+        const docCloneMarked = doc.cloneNode(true);
+        matched.forEach((el) => el.removeAttribute('data-sskip'));
+        docCloneMarked.querySelectorAll('[data-sskip]').forEach((el) => el.remove());
+        const cleanRoot = docCloneMarked.documentElement || docCloneMarked.body;
+        const cleanedText = collapseWhitespace(cleanRoot ? cleanRoot.textContent : '');
+        cleanPre.textContent = cleanedText || '(pusty wynik — wszystko wycięte lub payload pusty)';
+
+        // Stats
+        const validRules = rules.filter(r => r.valid).length;
+        const matchingRules = ruleCounts.filter(r => r.valid && r.count > 0).length;
+        statRules.textContent = matchingRules + ' / ' + validRules;
+        statElements.textContent = matched.size;
+        const delta = cleanedText.length - originalText.length;
+        statDelta.textContent = (delta > 0 ? '+' : '') + delta + ' znaków';
+        statDelta.classList.toggle('danger', matched.size === 0 && rules.length > 0);
+        statInvalid.textContent = invalidCount;
+        statInvalid.classList.toggle('danger', invalidCount > 0);
+
+        // Render per-rule list
+        ruleList.innerHTML = '';
+        if (ruleCounts.length === 0) {
+          ruleList.innerHTML = '<div class="rule-item no-match">(brak reguł — dodaj przynajmniej jedną do Rules)</div>';
+        } else {
+          for (const rc of ruleCounts) {
+            const div = document.createElement('div');
+            let cls = 'rule-item';
+            let prefix = '·';
+            if (!rc.valid) { cls += ' invalid'; prefix = '!'; }
+            else if (rc.count > 0) { cls += ' match'; prefix = '✓'; }
+            else { cls += ' no-match'; prefix = '·'; }
+            div.className = cls;
+            const sel = document.createElement('span');
+            sel.className = 'rule-selector';
+            sel.textContent = prefix + ' ' + rc.selector;
+            const cnt = document.createElement('span');
+            cnt.className = 'rule-count';
+            if (!rc.valid) cnt.textContent = 'invalid';
+            else cnt.textContent = rc.count + (rc.count === 1 ? ' match' : ' matches');
+            div.appendChild(sel);
+            div.appendChild(cnt);
+            ruleList.appendChild(div);
+          }
+        }
+      }
+
+      let debounceTimer = null;
+      function scheduleRecompute() {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(recompute, 200);
+      }
+
+      rulesInput.addEventListener('input', scheduleRecompute);
+      payloadInput.addEventListener('input', scheduleRecompute);
+
+      document.getElementById('btn-rules-load').addEventListener('click', () => {
+        rulesInput.value = defaultRules;
+        recompute();
+      });
+      document.getElementById('btn-rules-clear').addEventListener('click', () => {
+        rulesInput.value = '';
+        recompute();
+      });
+      document.getElementById('btn-payload-load').addEventListener('click', () => {
+        payloadInput.value = defaultPayload;
+        recompute();
+      });
+      document.getElementById('btn-payload-clear').addEventListener('click', () => {
+        payloadInput.value = '';
+        recompute();
+      });
+
+      // Init
+      rulesInput.value = defaultRules;
+      payloadInput.value = defaultPayload;
+      recompute();
+    })();
+  </script>
 
 </body>
+
 </html>
